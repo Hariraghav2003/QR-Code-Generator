@@ -7,8 +7,8 @@
   "type": "commonjs",
   "main": "Server.js",
   "scripts": {
-    "start":"npm start",
-    "test": "npm start"
+    "start":"node Server.js",
+    "test": "node Server.js"
   },
   "dependencies": {
     "body-parser": "^2.2.2",
