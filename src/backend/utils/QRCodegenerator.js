@@ -1,10 +1,18 @@
 const QRCode = require("qrcode");
-const fs = require("fs");
-const path = require("path");
-const { logger } = require("../log/Logger");
+const axios = require("axios");
+const cloudinary = require("../config/Cloudinary");
 
-async function generateQR(url, logoPath = null, logoMime = null) {
+async function getBase64FromUrl(url) {
+  const res = await axios.get(url, {
+    responseType: "arraybuffer",
+  });
+
+  return Buffer.from(res.data).toString("base64");
+}
+
+async function generateQR(url, logoUrl = null) {
   try {
+    // Generate QR SVG
     let qrSvg = await QRCode.toString(url, {
       type: "svg",
       errorCorrectionLevel: "H",
@@ -14,40 +22,45 @@ async function generateQR(url, logoPath = null, logoMime = null) {
         light: "#FFFFFF",
       },
     });
-    let logoBase64 = null;
-    if (logoPath) {
-      logoBase64 = logoPath;
-    }
-    let logoData = null;
-    if (logoBase64 && logoMime) {
-      logoData = `data:${logoMime};base64,${logoBase64}`;
-    }
-    if (logoBase64) {
+    // Insert logo if exists
+    if (logoUrl) {
+      const logoBase64 = await getBase64FromUrl(logoUrl);
+
+      const logoDataUri = `data:image/png;base64,${logoBase64}`;
+
       qrSvg = qrSvg.replace(
         "</svg>",
         `
         <rect x="39%" y="39%" width="22%" height="22%" rx="6" fill="white"/>
         <image
-          href="${logoData}"
+          href="${logoDataUri}"
           x="40%"
           y="40%"
           width="20%"
           height="20%"
           preserveAspectRatio="xMidYMid meet"
+          crossorigin="anonymous"
         />
       </svg>`,
       );
     }
-    const outputDir = path.join(__dirname, "../qrcodes");
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    const fileName = `qr_${Date.now()}.svg`;
-    const outputPath = path.join(outputDir, fileName);
-    fs.writeFileSync(outputPath, qrSvg);
-    return outputPath;
+
+    // Convert SVG → Base64
+    const base64Svg = Buffer.from(qrSvg).toString("base64");
+
+    const dataUri = `data:image/svg+xml;base64,${base64Svg}`;
+
+    // Upload QR to Cloudinary
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: "qr-codes",
+      resource_type: "image",
+      format: "svg",
+    });
+
+    // Return Cloudinary URL
+    return result.secure_url;
   } catch (err) {
-    logger.error("QR Generation Error:", err);
+    console.error("QR Generation Error:", err);
     throw err;
   }
 }

@@ -1,44 +1,36 @@
-const fs = require("fs");
-const path = require("path");
 const Busboy = require("busboy");
 const { generateQR } = require("../utils/QRCodegenerator");
+const cloudinary = require("../config/Cloudinary");
 
 exports.generateQRCode = (req, res) => {
   try {
     const busboy = Busboy({ headers: req.headers });
 
-    const dataDir = path.join(__dirname, "../data");
-
-    // Create data folder if not exists
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
     let url = null;
-    let logoPath = null;
+    let logoBuffer = null;
+    let logoMime = null;
 
+    // Get text field
     busboy.on("field", (fieldname, value) => {
       if (fieldname === "data") {
         url = value;
       }
     });
-    let logoMime = null;
 
+    // Get file
     busboy.on("file", (fieldname, file, info) => {
       if (fieldname === "logo") {
-        const filename = info.filename; // ✅ correct
         logoMime = info.mimeType;
-        const ext = path.extname(filename);
 
-        const fileName = `logo_${Date.now()}${ext}`;
+        const chunks = [];
 
-        const savePath = path.join(dataDir, fileName);
+        file.on("data", (data) => {
+          chunks.push(data);
+        });
 
-        const writeStream = fs.createWriteStream(savePath);
-
-        file.pipe(writeStream);
-
-        logoPath = savePath;
+        file.on("end", () => {
+          logoBuffer = Buffer.concat(chunks);
+        });
       }
     });
 
@@ -49,28 +41,34 @@ exports.generateQRCode = (req, res) => {
         });
       }
 
-      // Convert file → Base64 (if exists)
-      let base64Logo = null;
+      let logoUrl = null;
 
-      if (logoPath) {
-        const fileBuffer = fs.readFileSync(logoPath);
-        base64Logo = fileBuffer.toString("base64");
+      // Upload to Cloudinary if logo exists
+      if (logoBuffer) {
+        const base64 = `data:${logoMime};base64,${logoBuffer.toString(
+          "base64"
+        )}`;
+
+        const uploadResult = await cloudinary.uploader.upload(base64, {
+          folder: "qr-logos",
+        });
+
+        logoUrl = uploadResult.secure_url;
       }
-
-      // Pass base64Logo to QR generator here
-      const outputPath = await generateQR(url, base64Logo, logoMime);
-      const fileName = path.basename(outputPath);
-      const fileUrl = `${req.protocol}://${req.get("host")}/qrcode/${fileName}`;
+console.log("Logo URL:", logoUrl);
+      // Pass Cloudinary URL to QR generator
+      const qrUrl = await generateQR(url, logoUrl);
 
       return res.status(200).json({
         success: true,
-        url: fileUrl,
+        url: qrUrl,
       });
     });
 
     req.pipe(busboy);
   } catch (error) {
-    req.log.error("QR Error:", error);
+    console.error("QR Error:", error);
+
     return res.status(500).json({
       error: "Failed to generate QR",
     });

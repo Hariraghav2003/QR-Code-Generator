@@ -22,8 +22,6 @@ app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
 const allowedOrigins = ["http://localhost:5173"];
 
-
-
 // Apply CORS only for allowed origins
 app.use(
   cors({
