@@ -3,6 +3,7 @@ const Origincheck = async (req, res, next) => {
   try {
     const allowedOrigins = [
       "http://localhost:5173",
+      "https://qr-code-generator-ochre-tau.vercel.app"
     ];
 
     // Storing the request origin
