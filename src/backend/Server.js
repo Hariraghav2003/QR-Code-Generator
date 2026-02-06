@@ -33,6 +33,7 @@ app.use(
   }),
 );
 app.use("/qrcode", express.static(path.join(__dirname, "qrcodes")));
+
 // API Routes
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 });
 app.use(requestLogger);
 
+// API Rate Limiting
 const QRCodeApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // each IP can make 100 requests per 15 minutes
