@@ -134,7 +134,10 @@ function App() {
         </main>
 
         <footer className="footer">
-          <p>Built with React + Vite • QR Code Generation API</p>
+          <p>
+            © {new Date().getFullYear()} Hariraghav. Developed & Maintained by
+            Hariraghav.
+          </p>
         </footer>
       </div>
 
