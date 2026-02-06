@@ -1,0 +1,30 @@
+{
+  "name": "qrcodegenerator",
+  "version": "1.0.0",
+  "description": "qrcodegenerator backend",
+  "license": "ISC",
+  "author": "Hariraghav.S",
+  "type": "commonjs",
+  "main": "Server.js",
+  "scripts": {
+    "start":"npm start",
+    "test": "npm start"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "busboy": "^1.6.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-winston": "^4.2.0",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.3.3",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "path": "^0.12.7",
+    "qrcode": "^1.5.4",
+    "winston": "^3.19.0"
+  }
+}
