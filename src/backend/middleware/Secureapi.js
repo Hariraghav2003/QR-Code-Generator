@@ -26,7 +26,10 @@ async function fetchPublicKey() {
 const Secureapi = async (req, res, next) => {
   try {
     // Allowed origins
-    const allowedOrigins = ["http://localhost:5173"];
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://qr-code-generator-ochre-tau.vercel.app",
+    ];
     // Check request origin
     const requestOrigin = req.headers.origin || req.headers.referer;
     if (!requestOrigin) {
