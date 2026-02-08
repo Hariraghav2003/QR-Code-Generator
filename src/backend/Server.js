@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://qr-code-generator-ochre-tau.vercel.app",
+  "https://qr-code-generator-hariraghav.vercel.app",
 ];
 
 // Apply CORS only for allowed origins
